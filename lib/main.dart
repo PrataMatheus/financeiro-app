@@ -3,6 +3,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'models/transacao.dart';
 import 'database/app_database.dart';
 import 'providers/theme_provider.dart';
+import 'screens/met_screen.dart';
 
 void main() {
   runApp(MyApp(themeProvider: ThemeProvider()));
@@ -69,10 +70,7 @@ class _MainShellState extends State<MainShell> {
         children: [
           HomePage(key: _homeKey, themeProvider: widget.themeProvider),
           const PoupancaPage(),
-          const PlaceholderPage(
-              icone: Icons.hourglass_empty_rounded,
-              titulo: 'Em breve',
-              descricao: 'Essa funcionalidade esta chegando'),
+          const MetasScreen(),
           const PerfilPage(),
         ],
       ),
@@ -97,7 +95,7 @@ class _MainShellState extends State<MainShell> {
               _barItem(Icons.home_outlined, Icons.home, 0, 'Inicio'),
               _barItem(Icons.savings_outlined, Icons.savings, 1, 'Poupanca'),
               const Expanded(child: SizedBox()),
-              _barItem(Icons.hourglass_empty_rounded, Icons.hourglass_empty_rounded, 2, 'Em breve'),
+              _barItem(Icons.flag_outlined, Icons.flag, 2, 'Metas'),
               _barItem(Icons.person_outline, Icons.person, 3, 'Perfil'),
             ],
           ),

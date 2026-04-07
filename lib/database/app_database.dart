@@ -1,6 +1,7 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import '../models/transacao.dart';
+import 'meta_database.dart';
 
 class AppDatabase {
   static final AppDatabase instance = AppDatabase._init();
@@ -20,8 +21,9 @@ class AppDatabase {
 
     return openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: _onCreate,
+      onUpgrade: _onUpgrade,
     );
   }
 
@@ -37,6 +39,17 @@ class AppDatabase {
         observacao TEXT
       )
     ''');
+
+    // Versao 2+ inclui tables de metas
+    if (version >= 2) {
+      await MetaDatabase.instance.criarTabelas(db);
+    }
+  }
+
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      await MetaDatabase.instance.criarTabelas(db);
+    }
   }
 
   // CRUD Transacoes
