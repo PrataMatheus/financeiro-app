@@ -460,11 +460,13 @@ class _CriarMetaDialogState extends State<CriarMetaDialog> {
   final _valorCtrl = TextEditingController();
   String _iconeSelecionado = 'viagem';
   DateTime? _dataSelecionada;
+  final ScrollController _scrollCtrl = ScrollController();
 
   @override
   void dispose() {
     _nomeCtrl.dispose();
     _valorCtrl.dispose();
+    _scrollCtrl.dispose();
     super.dispose();
   }
 
@@ -510,73 +512,136 @@ class _CriarMetaDialogState extends State<CriarMetaDialog> {
   @override
   Widget build(BuildContext context) {
     final iconeKeys = widget.iconeMetas.keys.toList();
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
-    return AlertDialog(
-      title: const Text('Nova Meta'),
-      content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: _nomeCtrl,
-              decoration: const InputDecoration(
-                labelText: 'Nome da meta',
-                prefixIcon: Icon(Icons.flag),
-              ),
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
+      child: LayoutBuilder(
+        builder: (ctx, constraints) {
+          return Container(
+            constraints: BoxConstraints(
+              maxHeight: constraints.maxHeight * 0.85,
+              maxWidth: 420,
             ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _valorCtrl,
-              decoration: const InputDecoration(
-                labelText: 'Valor alvo (R\$)',
-                prefixIcon: Icon(Icons.attach_money),
-              ),
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Header
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
+                  child: Row(
+                    children: [
+                      Icon(Icons.flag, color: theme.colorScheme.primary, size: 22),
+                      const SizedBox(width: 8),
+                      const Text('Nova Meta', style: TextStyle(
+                          fontSize: 18, fontWeight: FontWeight.bold)),
+                      const Spacer(),
+                      IconButton(
+                        icon: const Icon(Icons.close, size: 20),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                    ],
+                  ),
+                ),
+                const Divider(height: 1),
+                // Content scrollable
+                Flexible(
+                  child: SingleChildScrollView(
+                    controller: _scrollCtrl,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 16),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        TextField(
+                          controller: _nomeCtrl,
+                          decoration: const InputDecoration(
+                            labelText: 'Nome da meta',
+                            prefixIcon: Icon(Icons.flag),
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        TextField(
+                          controller: _valorCtrl,
+                          decoration: const InputDecoration(
+                            labelText: 'Valor alvo (R\$)',
+                            prefixIcon: Icon(Icons.attach_money),
+                            border: OutlineInputBorder(),
+                          ),
+                          keyboardType:
+                              const TextInputType.numberWithOptions(decimal: true),
+                        ),
+                        const SizedBox(height: 12),
+                        OutlinedButton.icon(
+                          onPressed: _selecionarData,
+                          icon: const Icon(Icons.calendar_today),
+                          label: Text(_dataSelecionada != null
+                              ? '${_dataSelecionada!.day}/${_dataSelecionada!.month}/${_dataSelecionada!.year}'
+                              : 'Data limite (opcional)'),
+                        ),
+                        const SizedBox(height: 16),
+                        const Text('Escolha um icone:',
+                            style: TextStyle(
+                                fontWeight: FontWeight.w600)),
+                        const SizedBox(height: 8),
+                        GridView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          gridDelegate:
+                              const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 4,
+                            crossAxisSpacing: 8,
+                            mainAxisSpacing: 8,
+                            childAspectRatio: 1,
+                          ),
+                          itemCount: iconeKeys.length,
+                          itemBuilder: (ctx, idx) {
+                            final key = iconeKeys[idx];
+                            final selecionado = key == _iconeSelecionado;
+                            return _GridItemIcones(
+                              icone: widget.iconeMetas[key]['icone'],
+                              label: widget.iconeMetas[key]['label'],
+                              selecionado: selecionado,
+                              onTap: () =>
+                                  setState(() => _iconeSelecionado = key),
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 8),
+                      ],
+                    ),
+                  ),
+                ),
+                const Divider(height: 1),
+                // Actions
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: const Text('Cancelar'),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: FilledButton(
+                          onPressed: _salvar,
+                          child: const Text('Criar'),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 12),
-            OutlinedButton.icon(
-              onPressed: _selecionarData,
-              icon: const Icon(Icons.calendar_today),
-              label: Text(_dataSelecionada != null
-                  ? '${_dataSelecionada!.day}/${_dataSelecionada!.month}/${_dataSelecionada!.year}'
-                  : 'Data limite (opcional)'),
-            ),
-            const SizedBox(height: 16),
-            const Text('Escolha um icone:', style: TextStyle(fontWeight: FontWeight.w600)),
-            const SizedBox(height: 8),
-            GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 4,
-                crossAxisSpacing: 8,
-                mainAxisSpacing: 8,
-              ),
-              itemCount: iconeKeys.length,
-              itemBuilder: (ctx, idx) {
-                final key = iconeKeys[idx];
-                final selecionado = key == _iconeSelecionado;
-                return _GridItemIcones(
-                  icone: widget.iconeMetas[key]['icone'],
-                  label: widget.iconeMetas[key]['label'],
-                  selecionado: selecionado,
-                  onTap: () => setState(() => _iconeSelecionado = key),
-                );
-              },
-            ),
-          ],
-        ),
+          );
+        },
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Cancelar'),
-        ),
-        ElevatedButton(
-          onPressed: _salvar,
-          child: const Text('Criar'),
-        ),
-      ],
     );
   }
 }

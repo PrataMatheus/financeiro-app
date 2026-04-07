@@ -40,10 +40,7 @@ class AppDatabase {
       )
     ''');
 
-    // Versao 2+ inclui tables de metas
-    if (version >= 2) {
-      await MetaDatabase.instance.criarTabelas(db);
-    }
+    await MetaDatabase.instance.criarTabelas(db);
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
